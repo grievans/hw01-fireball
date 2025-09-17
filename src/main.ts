@@ -1,26 +1,46 @@
 import {vec2, vec3} from 'gl-matrix';
 // import * as Stats from 'stats-js';
 // import * as DAT from 'dat-gui';
+import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 
+import Cube from "./geometry/Cube";
+
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
+  Color: [255,255,255],
+  "Lambertian": false,
+  Cube:true,
+  Sphere:false,
+  Square:false
+  // Color: "#ff0000"
 };
 
+let icosphere: Icosphere;
 let square: Square;
+let prevTesselations: number = 5;
+
+let cube: Cube;
+
+// let frameCount : number;
 let time: number = 0;
 
+
 function loadScene() {
+  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
+  icosphere.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
-  // time = 0;
+
+  cube = new Cube(vec3.fromValues(0,0,0));
+  cube.create();
 }
 
 function main() {
@@ -36,7 +56,6 @@ function main() {
       // Use this if you wish
     }
   }, false);
-
   // Initial display for framerate
   // const stats = Stats();
   // stats.setMode(0);
@@ -47,6 +66,14 @@ function main() {
 
   // Add controls to the gui
   // const gui = new DAT.GUI();
+  // gui.add(controls, 'tesselations', 0, 8).step(1);
+  // gui.add(controls, 'Load Scene');
+  
+  // gui.addColor(controls, "Color");
+  // gui.add(controls, 'Lambertian');
+  // gui.add(controls, 'Sphere');
+  // gui.add(controls, 'Square');
+  // gui.add(controls, 'Cube');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -64,8 +91,19 @@ function main() {
   const camera = new Camera(vec3.fromValues(0, 0, -10), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
+  // renderer.setClearColor(0.2, 0.2, 0.2, 1);
   renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
   gl.enable(gl.DEPTH_TEST);
+
+  const lambert = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
+  ]);
+
+  const noiseShaderProgram = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/custom-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/custom-frag.glsl')),
+  ]);
 
   const flat = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
@@ -76,6 +114,8 @@ function main() {
     // Use this if you wish
   }
 
+  // frameCount = 0;
+
   // This function will be called every frame
   function tick() {
     camera.update();
@@ -83,16 +123,41 @@ function main() {
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
     processKeyPresses();
-    renderer.render(camera, flat, [
-      square,
+    renderer.render(camera, lambert, [
+      cube,
     ], time);
     time++;
+    // if(controls.tesselations != prevTesselations)
+    // {
+    //   prevTesselations = controls.tesselations;
+    //   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
+    //   icosphere.create();
+    // }
+    
+    // if (!controls['Lambertian']) {
+    //   noiseShaderProgram.setTime(++frameCount);
+    // }
+
+    // let drawArr : any[] = [];
+    // if (controls.Cube) {
+    //   drawArr.push(cube);
+    // }
+    // if (controls.Square) {
+    //   drawArr.push(square);
+    // }
+    // if (controls.Sphere) {
+    //   drawArr.push(icosphere);
+    // }
+
+    // renderer.render(camera, controls["Lambertian"] ? lambert : noiseShaderProgram, drawArr,
+    // controls.Color);
     // stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
-  }
 
+  }
+  
   window.addEventListener('resize', function() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
