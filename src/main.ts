@@ -47,6 +47,7 @@ function main() {
   window.addEventListener('keypress', function (e) {
     // console.log(e.key);
     switch(e.key) {
+      
       // Use this if you wish
     }
   }, false);
@@ -114,6 +115,10 @@ function main() {
     new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-frag.glsl')),
   ]);
+  const fireroomShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireroom-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireroom-frag.glsl')),
+  ]);
 
   function processKeyPresses() {
     // Use this if you wish
@@ -130,6 +135,9 @@ function main() {
     processKeyPresses();
     renderer.render(camera, fireballShader, [
       icosphere,
+    ], time);
+    renderer.render(camera, fireroomShader, [
+      cube,
     ], time);
     time++;
     // if(controls.tesselations != prevTesselations)
