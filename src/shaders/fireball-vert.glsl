@@ -122,7 +122,10 @@ void main()
 
     // normOffset += (perlin3D(vs_Pos.xyz * 25.f + vec3(u_Time * 0.023f, u_Time * 0.017f, u_Time * -0.047f)) + 1.f) * 0.2f;
     // normOffset += (perlin3D(vs_Pos.xyz * 5.f + vec3(u_Time * 0.017f, u_Time * 0.023f, u_Time * 0.047f)) + 1.f) * 0.5f;
-    float wNoise = worley3D(vs_Pos.xyz * 4.f + vec3(0.f,u_Time * -0.1f,0.f));
+
+    float t = u_Time * 0.7f; // TODO add a controllable time scale term?
+
+    float wNoise = worley3D(vs_Pos.xyz * 4.f + vec3(0.f,t * -0.1f,0.f));
     
     // sphere bounds (-1.f, 1.f)
     // if (vs_Pos.y > 0.9f) {
@@ -141,8 +144,8 @@ void main()
 
     // float xzScale = (sin(modelPosition.y * 3.f - u_Time * 0.07f) + 1.f) * 0.2f + 0.8f;
 
-    float xzScale = (sin(modelPosition.y * 3.f - u_Time * 0.0765f) + 1.f) * 0.2f;
-    xzScale *= sin(u_Time * 0.0123f) + 1.f;
+    float xzScale = (sin(modelPosition.y * 3.f - t * 0.0765f) + 1.f) * 0.1f;
+    xzScale *= sin(t * 0.0123f) + 1.f;
     xzScale += 1.f;
     // xzScale += (sin(modelPosition.y * 5.f - u_Time * 0.013f) + 1.f) * 0.4 + 0.6f;
     // xzScale *= 0.5f;
