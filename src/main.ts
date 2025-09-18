@@ -110,6 +110,11 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
   ]);
 
+  const fireballShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-frag.glsl')),
+  ]);
+
   function processKeyPresses() {
     // Use this if you wish
   }
@@ -123,8 +128,8 @@ function main() {
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
     processKeyPresses();
-    renderer.render(camera, lambert, [
-      cube,
+    renderer.render(camera, fireballShader, [
+      icosphere,
     ], time);
     time++;
     // if(controls.tesselations != prevTesselations)
