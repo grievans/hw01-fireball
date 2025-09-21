@@ -19,6 +19,8 @@ uniform mat4 u_ModelInvTr;
 uniform mat4 u_ViewProj;   
 uniform float u_Time;
 
+uniform float u_TimeScale;
+
 in vec4 vs_Pos;             // The array of vertex positions passed to the shader
 in vec4 vs_Nor;             // The array of vertex normals passed to the shader
 in vec4 vs_Col;             // The array of vertex colors passed to the shader.
@@ -129,7 +131,7 @@ void main()
     // normOffset += (perlin3D(vs_Pos.xyz * 25.f + vec3(u_Time * 0.023f, u_Time * 0.017f, u_Time * -0.047f)) + 1.f) * 0.2f;
     // normOffset += (perlin3D(vs_Pos.xyz * 5.f + vec3(u_Time * 0.017f, u_Time * 0.023f, u_Time * 0.047f)) + 1.f) * 0.5f;
 
-    float t = u_Time * 0.7f; // TODO add a controllable time scale term?
+    float t = u_Time * u_TimeScale; // TODO add a controllable time scale term?
 
     float wNoise = worley3D(vs_Pos.xyz * 4.f + vec3(0.f,t * -0.1f,0.f));
     

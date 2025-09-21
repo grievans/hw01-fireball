@@ -1,6 +1,6 @@
 import {vec2, vec3} from 'gl-matrix';
 // import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
+import * as DAT from 'dat.gui';
 import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
@@ -13,19 +13,20 @@ import Cube from "./geometry/Cube";
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
-  tesselations: 5,
+  tesselations: 6,
   'Load Scene': loadScene, // A function pointer, essentially
   Color: [255,255,255],
   "Lambertian": false,
   Cube:true,
   Sphere:false,
-  Square:false
+  Square:false,
+  "Time Scale": 0.7,
   // Color: "#ff0000"
 };
 
 let icosphere: Icosphere;
 let square: Square;
-let prevTesselations: number = 5;
+let prevTesselations: number = 6;
 
 let cube: Cube;
 
@@ -66,8 +67,10 @@ function main() {
   // document.body.appendChild(stats.domElement);
 
   // Add controls to the gui
-  // const gui = new DAT.GUI();
-  // gui.add(controls, 'tesselations', 0, 8).step(1);
+  const gui = new DAT.GUI({width:500});
+  gui.add(controls, 'tesselations', 0, 8).step(1);
+  // gui.add(controls, 'Time Scale', 0, 5.0);
+  gui.add(controls, 'Time Scale', 0, 5.0).step(0.025);
   // gui.add(controls, 'Load Scene');
   
   // gui.addColor(controls, "Color");
@@ -124,6 +127,32 @@ function main() {
     // Use this if you wish
   }
 
+  let mouseX = 0.5;
+  let mouseY = 0.5;
+
+
+  let trailSpheres : Icosphere[] = [];
+
+  function updateMousePos(event: MouseEvent) {
+    let newMouseX = event.pageX / window.innerWidth;
+    let newMouseY = event.pageY / window.innerHeight;
+    if (event.altKey) {
+    // if (event.altKey && (event.buttons & 1) == 1) {
+      // let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 0.5, 2);
+      // addedSphere.create();
+      // trailSpheres.push(addedSphere);
+      // console.log(mouseX, mouseY);
+      
+      // TODO I think I like the idea of moving around the fireball but having some sort of smoky particles trailing
+      // so I think making separate spheres (or other shape) for 'clouds' coming out from it? 
+    }
+    mouseX = newMouseX;
+    mouseY = newMouseY;
+    
+  }
+  // canvas.addEventListener("click", updateMousePos, false);
+  canvas.addEventListener("mousemove", updateMousePos, false);
+
   // frameCount = 0;
 
   // This function will be called every frame
@@ -133,25 +162,38 @@ function main() {
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
     processKeyPresses();
-    renderer.render(camera, fireballShader, [
-      icosphere,
-    ], time);
-    renderer.render(camera, fireroomShader, [
-      cube,
-    ], time);
-    time++;
-    // if(controls.tesselations != prevTesselations)
-    // {
-    //   prevTesselations = controls.tesselations;
-    //   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
-    //   icosphere.create();
-    // }
+
+    // renderer.render(camera, fireroomShader, [
+    //   cube,
+    // ], time);
+    // time++;
+    if(controls.tesselations != prevTesselations)
+    {
+      prevTesselations = controls.tesselations;
+      icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
+      icosphere.create();
+
+
+      // for (let sphere of trailSpheres) {
+        // sphere = new Icosphere()
+        // TODO set tesselations
+      // }
+    }
     
+
+    let drawArr : any[] = [];
+    drawArr.push(icosphere);
+    for (let sphere of trailSpheres) {
+      drawArr.push(sphere);
+    }
+
+    renderer.render(camera, fireballShader, drawArr, ++time, controls['Time Scale']);
+
     // if (!controls['Lambertian']) {
     //   noiseShaderProgram.setTime(++frameCount);
     // }
 
-    // let drawArr : any[] = [];
+    
     // if (controls.Cube) {
     //   drawArr.push(cube);
     // }

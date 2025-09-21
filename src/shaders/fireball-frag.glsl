@@ -75,10 +75,12 @@ void main()
                                                             //lit by our point light are not completely black.
 
         float pertOffset = fs_NormOffset - 0.05f + perlin3D(fs_Pos.xyz * 100.f) * 0.1f * clamp(0.f,3.f,bias((1.f + fs_Pos.y + length(fs_Pos.xz) * 0.3f) * 0.5f, 0.4f));
+        // pertOffset = fs_NormOffset;
         // float pertOffset = fs_NormOffset + perlin3D(fs_Pos.xyz * 100.f) * 0.1f * smoothstep(0.4f,1.9f,1.f + fs_Pos.y + length(fs_Pos.xz) * 0.3f);
         // pertOffset=fs_NormOffset;
         // TODO maybe have that perturbance also depend on time?
         vec3 baseColor = vec3(1.5f - pertOffset, 0.8f - pertOffset * 0.8f, 0.f);
+        // baseColor.xyz = baseColor.zyx;
 
         // if (length(fs_Pos) > 3.f) {
         // if (1.f + fs_Pos.y + length(fs_Pos.xz) * 0.3f > 0.3f) {
@@ -103,8 +105,10 @@ void main()
         // if (fs_Pos.x < 0.f) {
         //   finalColor = bucketedColor * 0.5f + baseColor * 0.5f;
         // }
+        // vec3 finalColor = bucketedColor;
         vec3 finalColor = bucketedColor * 0.5f + baseColor * 0.5f;
         // baseColor = floor(baseColor * 5.f) / 5.f;
+        
 
         out_Col = vec4(finalColor, 1.f);
         // out_Col = vec4(baseColor, fs_Pos.y * -0.1f + 0.9f);

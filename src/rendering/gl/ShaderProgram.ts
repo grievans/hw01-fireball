@@ -35,6 +35,7 @@ class ShaderProgram {
   unifUp: WebGLUniformLocation;
   unifDimensions: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
+  unifTimeScale: WebGLUniformLocation;
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -62,6 +63,7 @@ class ShaderProgram {
 
 
     this.unifTime   = gl.getUniformLocation(this.prog, "u_Time");
+    this.unifTimeScale = gl.getUniformLocation(this.prog, "u_TimeScale");
   }
 
   use() {
@@ -123,6 +125,12 @@ class ShaderProgram {
     this.use();
     if(this.unifTime !== -1) {
       gl.uniform1f(this.unifTime, t);
+    }
+  }
+  setTimeScale(t: number) {
+    this.use();
+    if(this.unifTimeScale !== -1) {
+      gl.uniform1f(this.unifTimeScale, t);
     }
   }
 
