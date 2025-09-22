@@ -139,9 +139,21 @@ function main() {
     new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-frag.glsl')),
   ]);
+  // const fireballShader2 = new ShaderProgram([
+  //   new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
+  //   new Shader(gl.FRAGMENT_SHADER, require('./shaders/smoke-frag.glsl')),
+  // ]);
   const fireroomShader = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/fireroom-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireroom-frag.glsl')),
+  ]);
+  const smokeShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/smoke-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/smoke-frag.glsl')),
+  ]);
+  const postShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/passthrough-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/noOp-frag.glsl')),
   ]);
 
   function processKeyPresses() {
@@ -152,6 +164,7 @@ function main() {
   let mouseY = 0.5;
 
   fireballShader.setMouseCoords(mouseX, mouseY);
+  // fireballShader2.setMouseCoords(mouseX, mouseY);
 
   let trailSpheres : Icosphere[] = [];
 
@@ -161,7 +174,7 @@ function main() {
     mouseX = newMouseX;
     mouseY = newMouseY;
     if (event.altKey) {
-    // if (event.altKey && (event.buttons & 1) == 1) {
+    // if (event.altKey && (event.buttons & 1) === 1) {
       // let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 0.5, 2);
       // addedSphere.create();
       // trailSpheres.push(addedSphere);
@@ -172,17 +185,48 @@ function main() {
       // mouseY += event.movementY;
       // console.log(mouseX, mouseY);
       fireballShader.setMouseCoords(mouseX, mouseY);
+      // fireballShader2.setMouseCoords(mouseX, mouseY);
+
+      
     }
   }
-  // canvas.addEventListener("click", updateMousePos, false);
+  // let icosphere2 = new Icosphere(vec3.fromValues(0, 0, 0), 1.1, 5);
+  // icosphere2.create();
+  // function clickListener(event: MouseEvent) {
+  //   let newMouseX = event.pageX / window.innerWidth;
+  //   let newMouseY = event.pageY / window.innerHeight;
+  //   mouseX = newMouseX;
+  //   mouseY = newMouseY;
+  //   if (event.altKey) {
+  //   // if (event.altKey && (event.buttons & 1) === 1) {
+  //     let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 0.5, 2);
+  //     addedSphere.create();
+  //     trailSpheres.push(addedSphere);
+  //   }
+  // }
+  // canvas.addEventListener("click", clickListener, false);
   canvas.addEventListener("mousemove", updateMousePos, false);
 
   // frameCount = 0;
+
+
+  let buffer1 = gl.createFramebuffer();
+  let texture1 = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture1);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+  // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, 0);
 
   // This function will be called every frame
   function tick() {
     camera.update();
     // stats.begin();
+    // gl.createFramebuffer()
+    // gl.bindFramebuffer(gl.FRAMEBUFFER, buffer1);
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
     processKeyPresses();
@@ -195,7 +239,9 @@ function main() {
     {
       prevTesselations = controls.tesselations;
       icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
+      // icosphere2 = new Icosphere(vec3.fromValues(0, 0, 0), 1.1, prevTesselations);
       icosphere.create();
+      // icosphere2.create();
 
 
       // for (let sphere of trailSpheres) {
@@ -206,7 +252,7 @@ function main() {
     
 
     let drawArr : any[] = [];
-    drawArr.push(icosphere);
+    // drawArr.push(icosphere);
     for (let sphere of trailSpheres) {
       drawArr.push(sphere);
     }
@@ -215,9 +261,17 @@ function main() {
     renderer.render(camera, fireroomShader, [cube], ++time, 
       controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
-    renderer.render(camera, fireballShader, drawArr, ++time, 
+    
+    // renderer.render(camera, fireballShader2, [icosphere2], ++time, 
+    //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+    //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    renderer.render(camera, fireballShader, [icosphere], ++time, 
       controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    
+    // renderer.render(camera, smokeShader, drawArr, ++time, 
+    //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+    //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
 
     // if (!controls['Lambertian']) {
     //   noiseShaderProgram.setTime(++frameCount);
@@ -237,6 +291,15 @@ function main() {
     // renderer.render(camera, controls["Lambertian"] ? lambert : noiseShaderProgram, drawArr,
     // controls.Color);
     // stats.end();
+
+    // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    // gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+    // renderer.clear();
+    // renderer
+    
+    renderer.render(camera, postShader, [square], ++time, 
+      controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+      controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);

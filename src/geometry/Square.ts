@@ -7,6 +7,7 @@ class Square extends Drawable {
   positions: Float32Array;
   normals: Float32Array;
   center: vec4;
+  UVs: Float32Array;
 
   constructor(center: vec3) {
     super(); // Call the constructor of the super class. This is required.
@@ -25,10 +26,15 @@ class Square extends Drawable {
                                      1, -1, 0.999, 1,
                                      1, 1, 0.999, 1,
                                      -1, 1, 0.999, 1]);
+    this.UVs = new Float32Array([0,0,0,0,
+                                 1,0,0,0,
+                                 1,1,0,0,
+                                 0,1,0,0]);
 
     this.generateIdx();
     this.generatePos();
     this.generateNor();
+    this.generateUV();
 
     this.count = this.indices.length;
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufIdx);
@@ -39,6 +45,9 @@ class Square extends Drawable {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufPos);
     gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufUV);
+    gl.bufferData(gl.ARRAY_BUFFER, this.UVs, gl.STATIC_DRAW);
 
     console.log(`Created square`);
   }
