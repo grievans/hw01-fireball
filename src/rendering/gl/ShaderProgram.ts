@@ -42,6 +42,7 @@ class ShaderProgram {
   unifWorleyScale: WebGLUniformLocation;
   unifXZAmplitude: WebGLUniformLocation;
   unifMouseCoords: WebGLUniformLocation;
+  unifOutlineScale: WebGLUniformLocation;
 
 
   
@@ -78,6 +79,7 @@ class ShaderProgram {
     this.unifXZAmplitude = gl.getUniformLocation(this.prog, "u_XZAmplitude");
 
     this.unifMouseCoords = gl.getUniformLocation(this.prog, "u_MouseCoords");
+    this.unifOutlineScale = gl.getUniformLocation(this.prog, "u_OutlineScale");
   }
 
   use() {
@@ -169,6 +171,12 @@ class ShaderProgram {
     this.use();
     if(this.unifMouseCoords !== -1) {
       gl.uniform2f(this.unifMouseCoords, x, y);
+    }
+  }
+  setOutlineScale(t: number) {
+    this.use();
+    if(this.unifOutlineScale !== -1) {
+      gl.uniform1f(this.unifOutlineScale, t);
     }
   }
 

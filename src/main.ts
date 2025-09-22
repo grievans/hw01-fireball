@@ -24,6 +24,7 @@ let controls = {
   "Color Gradient Time Scale": 0.7,
   "Worley Noise Scale": 1.0,
   "XZ Stretch Amplitude" : 1.0,
+  "Outline Scale" : 3.0,
   "Reset to Defaults" : function() {}, // Not sure best way to set this up, this feels awkward
   // Color: "#ff0000"
 };
@@ -79,6 +80,7 @@ function main() {
   gui.add(controls, 'Color Gradient Time Scale', 0, 5.0).step(0.025);
   gui.add(controls, 'Worley Noise Scale', 0, 5.0).step(0.025);
   gui.add(controls, "XZ Stretch Amplitude", 0, 5.0).step(0.025);
+  gui.add(controls, "Outline Scale", 0, 50.0).step(1);
   
   function resetToDefaults() {
     controls["tesselations"] = 6;
@@ -86,6 +88,7 @@ function main() {
     controls["Color Gradient Time Scale"] = 0.7;
     controls["Worley Noise Scale"] = 1.0;
     controls["XZ Stretch Amplitude"] = 1.0;
+    controls["Outline Scale"] = 3.0;
     gui.updateDisplay();
   }
   controls["Reset to Defaults"] = resetToDefaults;
@@ -139,6 +142,10 @@ function main() {
     new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-frag.glsl')),
   ]);
+  const fireballShaderNoFrag = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-noColor-frag.glsl')),
+  ]);
   // const fireballShader2 = new ShaderProgram([
   //   new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
   //   new Shader(gl.FRAGMENT_SHADER, require('./shaders/smoke-frag.glsl')),
@@ -153,7 +160,7 @@ function main() {
   ]);
   const postShader = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/passthrough-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/noOp-frag.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/postprocess-frag.glsl')),
   ]);
 
   function processKeyPresses() {
@@ -164,6 +171,7 @@ function main() {
   let mouseY = 0.5;
 
   fireballShader.setMouseCoords(mouseX, mouseY);
+  fireballShaderNoFrag.setMouseCoords(mouseX, mouseY);
   // fireballShader2.setMouseCoords(mouseX, mouseY);
 
   let trailSpheres : Icosphere[] = [];
@@ -185,6 +193,7 @@ function main() {
       // mouseY += event.movementY;
       // console.log(mouseX, mouseY);
       fireballShader.setMouseCoords(mouseX, mouseY);
+      fireballShaderNoFrag.setMouseCoords(mouseX, mouseY);
       // fireballShader2.setMouseCoords(mouseX, mouseY);
 
       
@@ -218,16 +227,28 @@ function main() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-  // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, buffer1);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, 0);
+  
+  let depthTexture = gl.createTexture();
+  // let renderBuffer1 = gl.createRenderbuffer();
+  // gl.bindRenderbuffer( gl.RENDERBUFFER)
+  gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, window.innerWidth, window.innerHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
 
   // This function will be called every frame
   function tick() {
     camera.update();
     // stats.begin();
     // gl.createFramebuffer()
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, buffer1);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, buffer1);
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0.0, 0.0, 0.0, 0.0);
     renderer.clear();
     processKeyPresses();
 
@@ -249,6 +270,7 @@ function main() {
         // TODO set tesselations
       // }
     }
+    postShader.setOutlineScale(controls["Outline Scale"]);
     
 
     let drawArr : any[] = [];
@@ -257,17 +279,22 @@ function main() {
       drawArr.push(sphere);
     }
 
+    gl.enable(gl.DEPTH_TEST);
     
-    renderer.render(camera, fireroomShader, [cube], ++time, 
-      controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
-      controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+
+    // renderer.render(camera, fireroomShader, [cube], ++time, 
+    //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+    //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     
     // renderer.render(camera, fireballShader2, [icosphere2], ++time, 
     //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
     //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
-    renderer.render(camera, fireballShader, [icosphere], ++time, 
+    renderer.render(camera, fireballShader, [icosphere], time, 
       controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    // renderer.render(camera, fireballShaderNoFrag, [icosphere], time, 
+    //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+    //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     
     // renderer.render(camera, smokeShader, drawArr, ++time, 
     //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
@@ -292,15 +319,31 @@ function main() {
     // controls.Color);
     // stats.end();
 
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.disable(gl.DEPTH_TEST);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     // gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     // renderer.clear();
     // renderer
-    
-    renderer.render(camera, postShader, [square], ++time, 
+    renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
+    renderer.clear();
+    renderer.render(camera, fireroomShader, [cube], time, 
+        controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+        controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.bindTexture(gl.TEXTURE_2D, texture1);
+    renderer.render(camera, postShader, [square], time, 
       controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
 
+    gl.enable(gl.DEPTH_TEST);
+    // renderer.render(camera, fireballShader, [icosphere], time, 
+    //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+    //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    
+
+    ++time;
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
 
