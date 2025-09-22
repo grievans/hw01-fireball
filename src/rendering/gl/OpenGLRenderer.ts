@@ -3,6 +3,7 @@ import Drawable from './Drawable';
 import Camera from '../../Camera';
 import {gl} from '../../globals';
 import ShaderProgram from './ShaderProgram';
+import Icosphere from '../../geometry/Icosphere';
 
 // In this file, `gl` is accessible because it is imported above
 class OpenGLRenderer {
@@ -43,6 +44,10 @@ class OpenGLRenderer {
     prog.setXZAmplitude(xzAmplitude);
 
     for (let drawable of drawables) {
+      if (drawable instanceof Icosphere) {
+        prog.setRadius(drawable.r);
+        prog.setPosOrigin(drawable.center[0], drawable.center[1], drawable.center[2]);
+      }
       prog.draw(drawable);
     }
   }

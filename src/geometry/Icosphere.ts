@@ -8,10 +8,12 @@ class Icosphere extends Drawable {
   positions: Float32Array;
   normals: Float32Array;
   center: vec4;
+  r: number;
 
   constructor(center: vec3, public radius: number, public subdivisions: number) {
     super(); // Call the constructor of the super class. This is required.
     this.center = vec4.fromValues(center[0], center[1], center[2], 1);
+    this.r = radius;
   }
 
   create() {

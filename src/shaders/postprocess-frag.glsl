@@ -120,7 +120,8 @@ void main() {
     // float stepCount = ceil(u_OutlineScale / 20.f);
 #if CIRCLE_OUTLINE
     accColor = texelFetch(u_Texture, ivec2(gl_FragCoord), 0);
-    if (accColor.a == 0.f) {
+
+    if (accColor.a == 0.f && u_OutlineSteps > 0.f) {
         float step = u_OutlineSteps > 0.f ? TAU / u_OutlineSteps : TAU;
         for (float theta = 0.f; theta < TAU; theta += step) {
             vec2 sampleOffset = vec2(cos(theta), sin(theta));

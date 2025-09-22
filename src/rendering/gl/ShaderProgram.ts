@@ -29,6 +29,7 @@ class ShaderProgram {
 
   unifModel: WebGLUniformLocation;
   unifModelInvTr: WebGLUniformLocation;
+  unifModelInv: WebGLUniformLocation;
   unifViewProj: WebGLUniformLocation;
   unifColor: WebGLUniformLocation;
 
@@ -44,6 +45,9 @@ class ShaderProgram {
   unifMouseCoords: WebGLUniformLocation;
   unifOutlineScale: WebGLUniformLocation;
   unifOutlineSteps: WebGLUniformLocation;
+
+  unifRadius: WebGLUniformLocation;
+  unifPosOrigin: WebGLUniformLocation;
 
 
   
@@ -69,6 +73,7 @@ class ShaderProgram {
     this.attrUV = gl.getAttribLocation(this.prog, "vs_UV");
     this.unifModel      = gl.getUniformLocation(this.prog, "u_Model");
     this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
+    this.unifModelInv = gl.getUniformLocation(this.prog, "u_ModelInv");
     this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
     this.unifColor      = gl.getUniformLocation(this.prog, "u_Color");
 
@@ -82,6 +87,9 @@ class ShaderProgram {
     this.unifMouseCoords = gl.getUniformLocation(this.prog, "u_MouseCoords");
     this.unifOutlineScale = gl.getUniformLocation(this.prog, "u_OutlineScale");
     this.unifOutlineSteps = gl.getUniformLocation(this.prog, "u_OutlineSteps");
+
+    this.unifPosOrigin = gl.getUniformLocation(this.prog, "u_PosOrigin");
+    this.unifRadius = gl.getUniformLocation(this.prog, "u_Radius");
   }
 
   use() {
@@ -102,6 +110,11 @@ class ShaderProgram {
       mat4.transpose(modelinvtr, model);
       mat4.invert(modelinvtr, modelinvtr);
       gl.uniformMatrix4fv(this.unifModelInvTr, false, modelinvtr);
+    }
+    if (this.unifModelInv !== -1) {
+      let modelinv: mat4 = mat4.create();
+      mat4.invert(modelinv, model);
+      gl.uniformMatrix4fv(this.unifModelInv, false, modelinv);
     }
   }
 
@@ -185,6 +198,18 @@ class ShaderProgram {
     this.use();
     if(this.unifOutlineSteps !== -1) {
       gl.uniform1f(this.unifOutlineSteps, t);
+    }
+  }
+  setRadius(t: number) {
+    this.use();
+    if(this.unifRadius !== -1) {
+      gl.uniform1f(this.unifRadius, t);
+    }
+  }
+  setPosOrigin(x: number, y: number, z:number) {
+    this.use();
+    if(this.unifPosOrigin !== -1) {
+      gl.uniform3f(this.unifPosOrigin, x, y, z);
     }
   }
 

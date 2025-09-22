@@ -211,7 +211,7 @@ function main() {
     mouseY = newMouseY;
     if (event.altKey) {
     // if (event.altKey && (event.buttons & 1) === 1) {
-      let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 0.5, 2);
+      let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 1, 2);
       addedSphere.create();
       trailSpheres.push(addedSphere);
     }
@@ -304,9 +304,7 @@ function main() {
     //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
     //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     
-    renderer.render(camera, smokeShader, drawArr, ++time, 
-      controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
-      controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    
 
     // if (!controls['Lambertian']) {
     //   noiseShaderProgram.setTime(++frameCount);
@@ -338,6 +336,9 @@ function main() {
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     gl.disable(gl.DEPTH_TEST);
 
+    renderer.render(camera, smokeShader, drawArr, ++time, 
+      controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+      controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     
     gl.bindTexture(gl.TEXTURE_2D, texture1);
     renderer.render(camera, postShader, [square], time, 
@@ -361,6 +362,13 @@ function main() {
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
     flat.setDimensions(window.innerWidth, window.innerHeight);
+
+    gl.bindTexture(gl.TEXTURE_2D, texture1);
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  
+  gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, window.innerWidth, window.innerHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
