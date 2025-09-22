@@ -20,6 +20,7 @@ uniform mat4 u_ViewProj;
 uniform float u_Time;
 
 uniform float u_TimeScale;
+uniform float u_WorleyScale;
 
 in vec4 vs_Pos;             // The array of vertex positions passed to the shader
 in vec4 vs_Nor;             // The array of vertex normals passed to the shader
@@ -105,6 +106,95 @@ float bias (float b, float t) {
 }
 
 
+#define offsetInFrag 1
+
+#if offsetInFrag
+
+void main()
+{
+    fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation
+
+    mat3 invTranspose = mat3(u_ModelInvTr);
+    vec4 normal = vec4(invTranspose * vec3(vs_Nor), 0);          // Pass the vertex normals to the fragment shader for interpolation.
+                                                            // Transform the geometry's normals by the inverse transpose of the
+                                                            // model matrix. This is necessary to ensure the normals remain
+                                                            // perpendicular to the surface after the surface is transformed by
+                                                            // the model matrix.
+
+    fs_Nor = normal;
+
+    vec4 modelPosition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
+
+    // TODO not sure how I want mouse interaction to behave
+    // modelPosition.xy -= (u_MouseCoords - 0.5f) / max(0.4f, distance(modelPosition.xy, u_MouseCoords));
+    
+
+    float normOffset = 0.f;
+    // normOffset += (sin(vs_Pos.x*5.f - u_Time * 0.03f) + cos(vs_Pos.y*5.f - u_Time * 0.05f) * 2.f + sin(vs_Pos.z*5.f - u_Time * 0.07f) + 4.f) / 4.f * (1.f + vs_Pos.y);
+
+    // normOffset += (perlin3D(vs_Pos.xyz * 25.f + vec3(u_Time * 0.023f, u_Time * 0.017f, u_Time * -0.047f)) + 1.f) * 0.2f;
+    // normOffset += (perlin3D(vs_Pos.xyz * 5.f + vec3(u_Time * 0.017f, u_Time * 0.023f, u_Time * 0.047f)) + 1.f) * 0.5f;
+
+    float t = u_Time * u_TimeScale;
+
+    float wNoise = worley3D((vs_Pos.xyz * 4.f + vec3(0.f,t * -0.1f,0.f)) * u_WorleyScale);
+    
+    // sphere bounds (-1.f, 1.f)
+    // if (vs_Pos.y > 0.9f) {
+    //   normOffset += 1.f;
+    // }
+
+    normOffset += smoothstep((-vs_Pos.y + 0.6f) * 0.5f,1.f,wNoise);
+    // normOffset += smoothstep(0.4 - vs_Pos.y * 0.5f,0.9,wNoise);
+    // normOffset += 1.f - wNoise * wNoise;
+
+    // normOffset *= random3D(vs_Pos.xyz * 0.0000001f).x > 0.5f ? 1.f : 0.f;
+
+
+    // modelPosition += normal * vec4(vec3(normOffset),0.f);
+    // modelPosition.y += normOffset;
+
+    // float xzScale = (sin(modelPosition.y * 3.f - u_Time * 0.07f) + 1.f) * 0.2f + 0.8f;
+
+    // float xzScale = (sin(modelPosition.y * 3.f - t * 0.0765f) + 1.f) * 0.1f;
+    // xzScale *= sin(t * 0.0123f) + 1.f;
+    // // xzScale *= u_XZAmplitude;
+    // xzScale += 0.9f;
+    // xzScale += 1.f;
+    // xzScale += (sin(modelPosition.y * 5.f - u_Time * 0.013f) + 1.f) * 0.4 + 0.6f;
+    // xzScale *= 0.5f;
+    // float xzScale = (sin(vs_Pos.y * 3.f - u_Time * 0.07f) + 1.f) * 0.2f + 0.8f;
+    // xzScale = bias(0.6f, xzScale);
+
+    fs_NormOffset = normOffset;
+
+    // modelPosition.xz *= xzScale;
+    
+    // vec3 fbmVal = (smoothstep(-0.8f,0.8f,
+    //               vec3(fbm(modelPosition.xyz * 3.f),
+    //                    fbm(modelPosition.yzx * 3.f),
+    //                    fbm(modelPosition.zxy * 3.f))) - 0.5f) * 0.1f;
+    // fbmVal *= (1.5f + vs_Pos.y);
+    // modelPosition.xyz += fbmVal;
+
+    modelPosition.xyz *= 20.f;
+
+    fs_Pos = modelPosition;
+    // modelPosition.xyz
+    // modelPosition.y += normOffset * 0.4f * (sin(u_Time * 0.01f));
+    
+    // modelPosition += normal * vec4(2.f + sin(vs_Pos.y * 10.f)) / 3.f;
+    // modelPosition += normal * vec4(2.f + sin(u_Time * 0.5f * vs_Pos.x * vs_Pos.y * vs_Pos.z)) / 3.f;
+    // modelPosition += normal * vec4(2.f + sin(u_Time * 0.2f + 10.f * vs_Pos.x)) / 3.f;
+
+    fs_LightVec = lightPos - modelPosition;  // Compute the direction in which the light source lies
+
+    gl_Position = u_ViewProj * modelPosition;// gl_Position is a built-in variable of OpenGL which is
+                                             // used to render the final positions of the geometry's vertices
+}
+
+
+#else
 
 void main()
 {
@@ -193,3 +283,5 @@ void main()
     gl_Position = u_ViewProj * modelPosition;// gl_Position is a built-in variable of OpenGL which is
                                              // used to render the final positions of the geometry's vertices
 }
+
+#endif

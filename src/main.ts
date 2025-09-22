@@ -151,26 +151,28 @@ function main() {
   let mouseX = 0.5;
   let mouseY = 0.5;
 
+  fireballShader.setMouseCoords(mouseX, mouseY);
 
   let trailSpheres : Icosphere[] = [];
 
   function updateMousePos(event: MouseEvent) {
     let newMouseX = event.pageX / window.innerWidth;
     let newMouseY = event.pageY / window.innerHeight;
+    mouseX = newMouseX;
+    mouseY = newMouseY;
     if (event.altKey) {
     // if (event.altKey && (event.buttons & 1) == 1) {
       // let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 0.5, 2);
       // addedSphere.create();
       // trailSpheres.push(addedSphere);
-      // console.log(mouseX, mouseY);
       
       // TODO I think I like the idea of moving around the fireball but having some sort of smoky particles trailing
       // so I think making separate spheres (or other shape) for 'clouds' coming out from it? 
-      
+      // mouseX += event.movementX;
+      // mouseY += event.movementY;
+      // console.log(mouseX, mouseY);
       fireballShader.setMouseCoords(mouseX, mouseY);
     }
-    mouseX = newMouseX;
-    mouseY = newMouseY;
   }
   // canvas.addEventListener("click", updateMousePos, false);
   canvas.addEventListener("mousemove", updateMousePos, false);
@@ -210,6 +212,9 @@ function main() {
     }
 
     
+    renderer.render(camera, fireroomShader, [cube], ++time, 
+      controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+      controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     renderer.render(camera, fireballShader, drawArr, ++time, 
       controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);

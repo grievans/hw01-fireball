@@ -127,7 +127,7 @@ void main()
     vec4 modelPosition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
 
     // TODO not sure how I want mouse interaction to behave
-    modelPosition.xy -= (u_MouseCoords - 0.5f) / max(0.5f, distance(modelPosition.xy, u_MouseCoords));
+    modelPosition.xy -= (u_MouseCoords - 0.5f) / max(0.4f, distance(modelPosition.xy, u_MouseCoords));
     
 
     float normOffset = 0.f;

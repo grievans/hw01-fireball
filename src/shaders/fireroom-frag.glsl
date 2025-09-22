@@ -59,7 +59,81 @@ float perlin3D( vec3 p ) {
 float bias (float b, float t) {
   return pow(t, log(b) / log(0.5f));
 }
+#define offsetInFrag 1
+#if offsetInFrag
+uniform float u_WorleyScale;
+uniform float u_FragTimeScale;
 
+float worley3D( vec3 p ) {
+    vec3 pFloor = floor(p);
+    float minDist = 1000.f;
+    for (int dz = -1; dz <= 1; ++dz) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                vec3 gridPoint = pFloor + vec3(dx,dy,dz);
+                vec3 samplePoint = random3D(gridPoint) + gridPoint;
+
+                float curDist = length(samplePoint - p);
+                if (minDist > curDist) {
+                    minDist = curDist;
+                }
+            }
+        }
+    }
+    return minDist;
+}
+
+void main() {
+    vec4 firePosition = vec4(normalize(fs_Pos.xyz),1.f);
+
+// firePosition.xyz += 0.1f * (smoothstep(-0.8f,0.8f,
+//                   vec3(perlin3D(fs_Pos.xyz * 3.f),
+//                        perlin3D(fs_Pos.yzx * 3.f),
+//                        perlin3D(fs_Pos.zxy * 3.f))) - 0.5f);
+
+    float normOffset = 0.f;
+    float t = u_Time * u_TimeScale;
+    float wNoise = worley3D((firePosition.xyz * 4.f + vec3(0.f,t * -0.1f,0.f)) * u_WorleyScale);
+    normOffset += smoothstep((-firePosition.y + 0.6f) * 0.5f,1.f,wNoise);
+    vec4 normal = firePosition;
+    firePosition += normal * vec4(vec3(normOffset),0.f);
+    firePosition.y += normOffset;
+
+    vec4 cubePosition = fs_Pos;
+    
+
+    float roomDistance = distance(firePosition, cubePosition);
+
+
+
+    vec4 diffuseColor = u_Color;
+
+    // Calculate the diffuse term for Lambert shading
+    float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
+    // Avoid negative lighting values
+    diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);
+
+    float ambientTerm = 0.3f;
+
+    float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
+                                                        //to simulate ambient lighting. This ensures that faces that are not
+                                                        //lit by our point light are not completely black.
+
+    float pertOffset = normOffset - 0.05f + perlin3D(firePosition.xyz * 100.f) * 0.1f * clamp(0.f,3.f,bias((1.f + firePosition.y + length(firePosition.xz) * 0.3f) * 0.5f, 0.4f));
+    vec3 baseColor = vec3(1.5f - pertOffset, 0.8f - pertOffset * 0.8f, 0.f);
+    float shimmy = (sin(u_Time * 0.025f * u_FragTimeScale) + 1.f) * 0.5f;
+    vec3 shimmyColor = vec3(shimmy, shimmy * 0.5f, 0.f);
+    vec3 bucketedColor = floor(baseColor * 5.f - shimmyColor) * 0.2f + shimmyColor;
+
+    vec3 finalColor = bucketedColor * 0.5f + baseColor * 0.5f;
+    
+    
+    finalColor *= 8000.f / (roomDistance * roomDistance * roomDistance); //exagerrating slightly rather than using squared dropoff
+
+    out_Col = vec4(finalColor, 1.f);
+        
+}
+#else
 
 void main()
 {
@@ -124,3 +198,5 @@ void main()
         out_Col = vec4(finalColor, 1.f);
 
 }
+
+#endif
