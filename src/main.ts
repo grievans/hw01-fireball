@@ -26,6 +26,8 @@ let controls = {
   "XZ Stretch Amplitude" : 1.0,
   "Outline Scale" : 10.0,
   "Outline Steps" : 15.0,
+  "Smoke Step Size" : 0.03125,
+  "Smoke Max Steps" : 64,
   "Reset to Defaults" : function() {}, // Not sure best way to set this up, this feels awkward
   // Color: "#ff0000"
 };
@@ -35,6 +37,7 @@ let square: Square;
 let prevTesselations: number = 6;
 
 let cube: Cube;
+let tallCube: Cube;
 
 // let frameCount : number;
 let time: number = 0;
@@ -48,6 +51,9 @@ function loadScene() {
 
   cube = new Cube(vec3.fromValues(0,0,0));
   cube.create();
+
+  tallCube = new Cube(vec3.fromValues(0,40,0), vec3.fromValues(4,40,4));
+  tallCube.create();
 }
 
 
@@ -83,6 +89,8 @@ function main() {
   gui.add(controls, "XZ Stretch Amplitude", 0, 5.0).step(0.025);
   gui.add(controls, "Outline Scale", 0, 50.0).step(1);
   gui.add(controls, "Outline Steps", 0, 100.0).step(1);
+  gui.add(controls, "Smoke Max Steps", 0, 1024.0).step(1);
+  gui.add(controls, "Smoke Step Size", 0, 10.0).step(0.03125);
   
   function resetToDefaults() {
     controls["tesselations"] = 6;
@@ -204,19 +212,19 @@ function main() {
   }
   // let icosphere2 = new Icosphere(vec3.fromValues(0, 0, 0), 1.1, 5);
   // icosphere2.create();
-  function clickListener(event: MouseEvent) {
-    let newMouseX = event.pageX / window.innerWidth;
-    let newMouseY = event.pageY / window.innerHeight;
-    mouseX = newMouseX;
-    mouseY = newMouseY;
-    if (event.altKey) {
-    // if (event.altKey && (event.buttons & 1) === 1) {
-      let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 1, 2);
-      addedSphere.create();
-      trailSpheres.push(addedSphere);
-    }
-  }
-  canvas.addEventListener("click", clickListener, false);
+  // function clickListener(event: MouseEvent) {
+  //   let newMouseX = event.pageX / window.innerWidth;
+  //   let newMouseY = event.pageY / window.innerHeight;
+  //   mouseX = newMouseX;
+  //   mouseY = newMouseY;
+  //   if (event.altKey) {
+  //   // if (event.altKey && (event.buttons & 1) === 1) {
+  //     let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 1, 2);
+  //     addedSphere.create();
+  //     trailSpheres.push(addedSphere);
+  //   }
+  // }
+  // canvas.addEventListener("click", clickListener, false);
   canvas.addEventListener("mousemove", updateMousePos, false);
 
   // frameCount = 0;
@@ -336,9 +344,18 @@ function main() {
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     gl.disable(gl.DEPTH_TEST);
 
-    renderer.render(camera, smokeShader, drawArr, ++time, 
+
+    smokeShader.setSmokeMaxSteps(controls["Smoke Max Steps"]);
+    smokeShader.setSmokeStepSize(controls["Smoke Step Size"]);
+
+    renderer.render(camera, smokeShader, [tallCube], ++time, 
       controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    
+
+    // renderer.render(camera, smokeShader, drawArr, ++time, 
+    //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+    //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     
     gl.bindTexture(gl.TEXTURE_2D, texture1);
     renderer.render(camera, postShader, [square], time, 

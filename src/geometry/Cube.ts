@@ -7,10 +7,12 @@ class Cube extends Drawable {
   positions: Float32Array;
   normals: Float32Array;
   center: vec4;
+  scale: vec4;
 
-  constructor(center: vec3) {
+  constructor(center: vec3, scale: vec3 = vec3.fromValues(1.0,1.0,1.0)) {
     super(); // Call the constructor of the super class. This is required.
     this.center = vec4.fromValues(center[0], center[1], center[2], 1);
+    this.scale = vec4.fromValues(scale[0], scale[1], scale[2], 1.0);
   }
 
   create() {

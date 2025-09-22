@@ -4,6 +4,7 @@ import Camera from '../../Camera';
 import {gl} from '../../globals';
 import ShaderProgram from './ShaderProgram';
 import Icosphere from '../../geometry/Icosphere';
+import Cube from '../../geometry/Cube';
 
 // In this file, `gl` is accessible because it is imported above
 class OpenGLRenderer {
@@ -47,6 +48,15 @@ class OpenGLRenderer {
       if (drawable instanceof Icosphere) {
         prog.setRadius(drawable.r);
         prog.setPosOrigin(drawable.center[0], drawable.center[1], drawable.center[2]);
+      } else if (drawable instanceof Cube) {
+        prog.setPosOrigin(drawable.center[0], drawable.center[1], drawable.center[2]);
+        prog.setRadius(2);
+        model = mat4.create();
+        mat4.identity(model);
+        mat4.translate(model,model,drawable.center);
+        mat4.scale(model,model,drawable.scale);
+        prog.setModelMatrix(model);
+
       }
       prog.draw(drawable);
     }

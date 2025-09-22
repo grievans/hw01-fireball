@@ -49,6 +49,9 @@ class ShaderProgram {
   unifRadius: WebGLUniformLocation;
   unifPosOrigin: WebGLUniformLocation;
 
+  unifSmokeStepSize: WebGLUniformLocation;
+  unifSmokeMaxSteps: WebGLUniformLocation;
+
 
   
   constructor(shaders: Array<Shader>) {
@@ -90,6 +93,9 @@ class ShaderProgram {
 
     this.unifPosOrigin = gl.getUniformLocation(this.prog, "u_PosOrigin");
     this.unifRadius = gl.getUniformLocation(this.prog, "u_Radius");
+
+    this.unifSmokeStepSize = gl.getUniformLocation(this.prog, "u_SmokeStepSize");
+    this.unifSmokeMaxSteps = gl.getUniformLocation(this.prog, "u_SmokeMaxSteps");
   }
 
   use() {
@@ -210,6 +216,18 @@ class ShaderProgram {
     this.use();
     if(this.unifPosOrigin !== -1) {
       gl.uniform3f(this.unifPosOrigin, x, y, z);
+    }
+  }
+  setSmokeStepSize(t:number) {
+    this.use();
+    if(this.unifSmokeStepSize !== -1) {
+      gl.uniform1f(this.unifSmokeStepSize, t);
+    }
+  }
+  setSmokeMaxSteps(t:number) {
+    this.use();
+    if(this.unifSmokeMaxSteps !== -1) {
+      gl.uniform1i(this.unifSmokeMaxSteps, t);
     }
   }
 

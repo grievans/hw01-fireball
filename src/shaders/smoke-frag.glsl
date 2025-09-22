@@ -17,6 +17,9 @@ uniform vec3 u_PosOrigin;
 uniform float u_Radius;
 uniform float u_Time;
 
+uniform int u_SmokeMaxSteps;
+uniform float u_SmokeStepSize;
+
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
 in vec4 fs_Nor;
@@ -63,25 +66,49 @@ float perlin3D( vec3 p ) {
 }
 
 
+float worley3D( vec3 p, out vec3 targetPoint ) {
+    vec3 pFloor = floor(p);
+    float minDist = 1000.f;
+    for (int dz = -1; dz <= 1; ++dz) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                vec3 gridPoint = pFloor + vec3(dx,dy,dz);
+                vec3 samplePoint = random3D(gridPoint) + gridPoint;
+
+                float curDist = length(samplePoint - p);
+                if (minDist > curDist) {
+                    minDist = curDist;
+                    targetPoint = samplePoint;
+                }
+            }
+        }
+    }
+    return minDist;
+}
+
+
 
 float getDensity(vec3 p) {
     // if (length(p.xyz) > 2.f) {
     vec3 pos = p - u_PosOrigin.xyz;
-    float lp = length(pos.xy);
-    if (lp > u_Radius) {
+    float lp = length(pos.xz);
+    if (lp - pos.y / 40.f > u_Radius) {
         return 0.f;
     }
     if (perlin3D(pos + vec3(0.f,u_Time * -0.05f, 0.f)) < 0.2 / lp) {
         return 0.f;
     }
+    // if (perlin3D(pos + vec3(0.f,u_Time * -0.05f, 0.f)) < 0.2 / lp) {
+    //     return 0.f;
+    // }
     return 0.1;
     // return 0.015625f;
 }
 
-#define MAX_STEPS 64
+// #define MAX_STEPS 64
 float accumulateDensity(vec3 pos, vec3 direction) {
     float acc = 0.f;
-    for (int i = 0; i < MAX_STEPS; ++i) {
+    for (int i = 0; i < u_SmokeMaxSteps; ++i) {
         acc += getDensity(pos);
         pos += direction * (0.5f + random3Dto1DTime(pos));
     }
@@ -108,7 +135,7 @@ void main()
         // vec4 modelEye = u_ModelInv * vec4(u_Eye,1.f);
         // vec3 eyeDir = normalize(fs_PosLocal.xyz - modelEye.xyz) * 0.03125;
 
-        vec3 eyeDir = normalize(fs_Pos.xyz - u_Eye.xyz) * 0.03125;
+        vec3 eyeDir = normalize(fs_Pos.xyz - u_Eye.xyz) * u_SmokeStepSize;
         float d = accumulateDensity(fs_Pos.xyz, eyeDir);
         // float d = accumulateDensity(fs_PosLocal.xyz, eyeDir);
 
