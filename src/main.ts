@@ -12,7 +12,7 @@ import Cube from "./geometry/Cube";
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
-const controls = {
+let controls = {
   tesselations: 6,
   'Load Scene': loadScene, // A function pointer, essentially
   Color: [255,255,255],
@@ -20,7 +20,11 @@ const controls = {
   Cube:true,
   Sphere:false,
   Square:false,
-  "Time Scale": 0.7,
+  "Main Time Scale": 0.7,
+  "Color Gradient Time Scale": 0.7,
+  "Worley Noise Scale": 1.0,
+  "XZ Stretch Amplitude" : 1.0,
+  "Reset to Defaults" : function() {}, // Not sure best way to set this up, this feels awkward
   // Color: "#ff0000"
 };
 
@@ -43,6 +47,7 @@ function loadScene() {
   cube = new Cube(vec3.fromValues(0,0,0));
   cube.create();
 }
+
 
 function main() {
   window.addEventListener('keypress', function (e) {
@@ -70,7 +75,23 @@ function main() {
   const gui = new DAT.GUI({width:500});
   gui.add(controls, 'tesselations', 0, 8).step(1);
   // gui.add(controls, 'Time Scale', 0, 5.0);
-  gui.add(controls, 'Time Scale', 0, 5.0).step(0.025);
+  gui.add(controls, 'Main Time Scale', 0, 5.0).step(0.025);
+  gui.add(controls, 'Color Gradient Time Scale', 0, 5.0).step(0.025);
+  gui.add(controls, 'Worley Noise Scale', 0, 5.0).step(0.025);
+  gui.add(controls, "XZ Stretch Amplitude", 0, 5.0).step(0.025);
+  
+  function resetToDefaults() {
+    controls["tesselations"] = 6;
+    controls["Main Time Scale"] = 0.7;
+    controls["Color Gradient Time Scale"] = 0.7;
+    controls["Worley Noise Scale"] = 1.0;
+    controls["XZ Stretch Amplitude"] = 1.0;
+    gui.updateDisplay();
+  }
+  controls["Reset to Defaults"] = resetToDefaults;
+  
+  gui.add(controls, 'Reset to Defaults');
+  // gui.updateDisplay();
   // gui.add(controls, 'Load Scene');
   
   // gui.addColor(controls, "Color");
@@ -145,10 +166,11 @@ function main() {
       
       // TODO I think I like the idea of moving around the fireball but having some sort of smoky particles trailing
       // so I think making separate spheres (or other shape) for 'clouds' coming out from it? 
+      
+      fireballShader.setMouseCoords(mouseX, mouseY);
     }
     mouseX = newMouseX;
     mouseY = newMouseY;
-    
   }
   // canvas.addEventListener("click", updateMousePos, false);
   canvas.addEventListener("mousemove", updateMousePos, false);
@@ -187,7 +209,10 @@ function main() {
       drawArr.push(sphere);
     }
 
-    renderer.render(camera, fireballShader, drawArr, ++time, controls['Time Scale']);
+    
+    renderer.render(camera, fireballShader, drawArr, ++time, 
+      controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+      controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
 
     // if (!controls['Lambertian']) {
     //   noiseShaderProgram.setTime(++frameCount);

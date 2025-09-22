@@ -4,6 +4,7 @@ precision highp float;
 uniform vec3 u_Eye, u_Ref, u_Up;
 uniform vec2 u_Dimensions;
 uniform float u_Time;
+uniform float u_TimeScale;
 
 // in vec2 fs_Pos;
 
@@ -99,6 +100,11 @@ void main()
         // I think some bucketing of colors could be neat. go for a cartoony sort of look
         // baseColor = mod(baseColor, 0.2f) + floor(baseColor * 5.f) * 0.2f;
         // vec3 spillColor = mod(baseColor, 0.2f);
+
+        // float shimmy = sin(u_Time * 5.f * u_TimeScale) + 1.f;
+        // vec3 shimmyColor = vec3(shimmy, shimmy * 0.5f, shimmy * 0.1f);
+        // vec3 bucketedColor = floor(baseColor * 5.f - shimmyColor) * 0.2f + shimmyColor;
+        
         vec3 bucketedColor = floor(baseColor * 5.f) * 0.2f;
         // vec3 finalColor = spillColor * 0.5f + bucketedColor;
         // vec3 finalColor = bucketedColor;

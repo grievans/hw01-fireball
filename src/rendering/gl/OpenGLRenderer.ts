@@ -23,7 +23,7 @@ class OpenGLRenderer {
   }
 
   // render(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, inputColor: vec4) {
-  render(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, time: number, timeScale : number = 0.7) {
+  render(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, time: number, timeScale : number = 0.7, fragTimeScale : number = 0.7, worleyScale : number = 1.0, xzAmplitude : number = 1.0) {
     prog.setEyeRefUp(camera.controls.eye, camera.controls.center, camera.controls.up);
 
     let model = mat4.create();
@@ -38,6 +38,9 @@ class OpenGLRenderer {
     prog.setGeometryColor(color);
     prog.setTime(time);
     prog.setTimeScale(timeScale);
+    prog.setFragTimeScale(fragTimeScale);
+    prog.setWorleyScale(worleyScale);
+    prog.setXZAmplitude(xzAmplitude);
 
     for (let drawable of drawables) {
       prog.draw(drawable);

@@ -20,6 +20,13 @@ uniform mat4 u_ViewProj;
 uniform float u_Time;
 uniform float u_TimeScale;
 
+uniform float u_WorleyScale;
+uniform float u_XZAmplitude;
+
+uniform vec2 u_MouseCoords;
+uniform vec2 u_Dimensions;
+
+
 
 in vec4 vs_Pos;             // The array of vertex positions passed to the shader
 in vec4 vs_Nor;             // The array of vertex normals passed to the shader
@@ -119,6 +126,10 @@ void main()
 
     vec4 modelPosition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
 
+    // TODO not sure how I want mouse interaction to behave
+    modelPosition.xy -= (u_MouseCoords - 0.5f) / max(0.5f, distance(modelPosition.xy, u_MouseCoords));
+    
+
     float normOffset = 0.f;
     // normOffset += (sin(vs_Pos.x*5.f - u_Time * 0.03f) + cos(vs_Pos.y*5.f - u_Time * 0.05f) * 2.f + sin(vs_Pos.z*5.f - u_Time * 0.07f) + 4.f) / 4.f * (1.f + vs_Pos.y);
 
@@ -127,7 +138,7 @@ void main()
 
     float t = u_Time * u_TimeScale;
 
-    float wNoise = worley3D(vs_Pos.xyz * 4.f + vec3(0.f,t * -0.1f,0.f));
+    float wNoise = worley3D((vs_Pos.xyz * 4.f + vec3(0.f,t * -0.1f,0.f)) * u_WorleyScale);
     
     // sphere bounds (-1.f, 1.f)
     // if (vs_Pos.y > 0.9f) {
@@ -148,7 +159,9 @@ void main()
 
     float xzScale = (sin(modelPosition.y * 3.f - t * 0.0765f) + 1.f) * 0.1f;
     xzScale *= sin(t * 0.0123f) + 1.f;
-    xzScale += 1.f;
+    xzScale *= u_XZAmplitude;
+    xzScale += 0.9f;
+    // xzScale += 1.f;
     // xzScale += (sin(modelPosition.y * 5.f - u_Time * 0.013f) + 1.f) * 0.4 + 0.6f;
     // xzScale *= 0.5f;
     // float xzScale = (sin(vs_Pos.y * 3.f - u_Time * 0.07f) + 1.f) * 0.2f + 0.8f;
@@ -164,6 +177,7 @@ void main()
                        fbm(modelPosition.zxy * 3.f))) - 0.5f) * 0.1f;
     fbmVal *= (1.5f + vs_Pos.y);
     modelPosition.xyz += fbmVal;
+
 
     fs_Pos = modelPosition;
     // modelPosition.xyz

@@ -36,7 +36,11 @@ class ShaderProgram {
   unifDimensions: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
   unifTimeScale: WebGLUniformLocation;
-
+  unifFragTimeScale: WebGLUniformLocation;
+  unifWorleyScale: WebGLUniformLocation;
+  unifXZAmplitude: WebGLUniformLocation;
+  unifMouseCoords: WebGLUniformLocation;
+  
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
 
@@ -64,6 +68,11 @@ class ShaderProgram {
 
     this.unifTime   = gl.getUniformLocation(this.prog, "u_Time");
     this.unifTimeScale = gl.getUniformLocation(this.prog, "u_TimeScale");
+    this.unifFragTimeScale = gl.getUniformLocation(this.prog, "u_FragTimeScale");
+    this.unifWorleyScale = gl.getUniformLocation(this.prog, "u_WorleyScale");
+    this.unifXZAmplitude = gl.getUniformLocation(this.prog, "u_XZAmplitude");
+
+    this.unifMouseCoords = gl.getUniformLocation(this.prog, "u_MouseCoords");
   }
 
   use() {
@@ -131,6 +140,30 @@ class ShaderProgram {
     this.use();
     if(this.unifTimeScale !== -1) {
       gl.uniform1f(this.unifTimeScale, t);
+    }
+  }
+  setFragTimeScale(t: number) {
+    this.use();
+    if(this.unifFragTimeScale !== -1) {
+      gl.uniform1f(this.unifFragTimeScale, t);
+    }
+  }
+  setWorleyScale(t: number) {
+    this.use();
+    if(this.unifWorleyScale !== -1) {
+      gl.uniform1f(this.unifWorleyScale, t);
+    }
+  }
+  setXZAmplitude(t: number) {
+    this.use();
+    if(this.unifXZAmplitude !== -1) {
+      gl.uniform1f(this.unifXZAmplitude, t);
+    }
+  }
+  setMouseCoords(x: number, y: number) {
+    this.use();
+    if(this.unifMouseCoords !== -1) {
+      gl.uniform2f(this.unifMouseCoords, x, y);
     }
   }
 
