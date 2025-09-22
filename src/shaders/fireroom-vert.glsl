@@ -177,7 +177,7 @@ void main()
     // fbmVal *= (1.5f + vs_Pos.y);
     // modelPosition.xyz += fbmVal;
 
-    modelPosition.xyz *= 20.f;
+    modelPosition.xyz *= 80.f;
 
     fs_Pos = modelPosition;
     // modelPosition.xyz

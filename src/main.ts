@@ -24,7 +24,8 @@ let controls = {
   "Color Gradient Time Scale": 0.7,
   "Worley Noise Scale": 1.0,
   "XZ Stretch Amplitude" : 1.0,
-  "Outline Scale" : 3.0,
+  "Outline Scale" : 10.0,
+  "Outline Steps" : 15.0,
   "Reset to Defaults" : function() {}, // Not sure best way to set this up, this feels awkward
   // Color: "#ff0000"
 };
@@ -81,6 +82,7 @@ function main() {
   gui.add(controls, 'Worley Noise Scale', 0, 5.0).step(0.025);
   gui.add(controls, "XZ Stretch Amplitude", 0, 5.0).step(0.025);
   gui.add(controls, "Outline Scale", 0, 50.0).step(1);
+  gui.add(controls, "Outline Steps", 0, 100.0).step(1);
   
   function resetToDefaults() {
     controls["tesselations"] = 6;
@@ -88,7 +90,8 @@ function main() {
     controls["Color Gradient Time Scale"] = 0.7;
     controls["Worley Noise Scale"] = 1.0;
     controls["XZ Stretch Amplitude"] = 1.0;
-    controls["Outline Scale"] = 3.0;
+    controls["Outline Scale"] = 10.0;
+    controls["Outline Steps"] = 15.0;
     gui.updateDisplay();
   }
   controls["Reset to Defaults"] = resetToDefaults;
@@ -201,19 +204,19 @@ function main() {
   }
   // let icosphere2 = new Icosphere(vec3.fromValues(0, 0, 0), 1.1, 5);
   // icosphere2.create();
-  // function clickListener(event: MouseEvent) {
-  //   let newMouseX = event.pageX / window.innerWidth;
-  //   let newMouseY = event.pageY / window.innerHeight;
-  //   mouseX = newMouseX;
-  //   mouseY = newMouseY;
-  //   if (event.altKey) {
-  //   // if (event.altKey && (event.buttons & 1) === 1) {
-  //     let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 0.5, 2);
-  //     addedSphere.create();
-  //     trailSpheres.push(addedSphere);
-  //   }
-  // }
-  // canvas.addEventListener("click", clickListener, false);
+  function clickListener(event: MouseEvent) {
+    let newMouseX = event.pageX / window.innerWidth;
+    let newMouseY = event.pageY / window.innerHeight;
+    mouseX = newMouseX;
+    mouseY = newMouseY;
+    if (event.altKey) {
+    // if (event.altKey && (event.buttons & 1) === 1) {
+      let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 0.5, 2);
+      addedSphere.create();
+      trailSpheres.push(addedSphere);
+    }
+  }
+  canvas.addEventListener("click", clickListener, false);
   canvas.addEventListener("mousemove", updateMousePos, false);
 
   // frameCount = 0;
@@ -240,6 +243,10 @@ function main() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   // This function will be called every frame
   function tick() {
@@ -271,6 +278,7 @@ function main() {
       // }
     }
     postShader.setOutlineScale(controls["Outline Scale"]);
+    postShader.setOutlineSteps(controls["Outline Steps"]);
     
 
     let drawArr : any[] = [];
@@ -296,9 +304,9 @@ function main() {
     //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
     //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     
-    // renderer.render(camera, smokeShader, drawArr, ++time, 
-    //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
-    //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    renderer.render(camera, smokeShader, drawArr, ++time, 
+      controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+      controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
 
     // if (!controls['Lambertian']) {
     //   noiseShaderProgram.setTime(++frameCount);
@@ -319,7 +327,6 @@ function main() {
     // controls.Color);
     // stats.end();
 
-    gl.disable(gl.DEPTH_TEST);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     // gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     // renderer.clear();
@@ -327,11 +334,11 @@ function main() {
     renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
     renderer.clear();
     renderer.render(camera, fireroomShader, [cube], time, 
-        controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
-        controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+      controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+      controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    gl.disable(gl.DEPTH_TEST);
 
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    
     gl.bindTexture(gl.TEXTURE_2D, texture1);
     renderer.render(camera, postShader, [square], time, 
       controls['Main Time Scale'], controls["Color Gradient Time Scale"], 

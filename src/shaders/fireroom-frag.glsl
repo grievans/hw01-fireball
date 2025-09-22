@@ -128,7 +128,8 @@ void main() {
     vec3 finalColor = bucketedColor * 0.5f + baseColor * 0.5f;
     
     
-    finalColor *= 8000.f / (roomDistance * roomDistance * roomDistance); //exagerrating slightly rather than using squared dropoff
+    finalColor *= 512000.f / (roomDistance * roomDistance * roomDistance); //exagerrating slightly rather than using squared dropoff
+    // finalColor *= 8000.f / (roomDistance * roomDistance * roomDistance); //exagerrating slightly rather than using squared dropoff
 
     out_Col = vec4(finalColor, 1.f);
         
