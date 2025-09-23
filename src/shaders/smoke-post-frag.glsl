@@ -16,7 +16,6 @@ uniform vec3 u_Eye;
 uniform vec3 u_PosOrigin;
 uniform float u_Radius;
 uniform float u_Time;
-uniform float u_TimeScale;
 
 uniform int u_SmokeMaxSteps;
 uniform float u_SmokeStepSize;
@@ -43,7 +42,7 @@ vec3 random3D( vec3 p ) {
                                          dot(p, vec3(103.37f, 217.83f, 523.7f)))) * 43758.5453f);
 }
 float random3Dto1DTime( vec3 p ) {
-    return fract(sin(dot(p, vec3(127.1f, 311.7f, 191.999f) + u_Time * vec3(269.5f, 183.3f, 773.2f))) * 43758.5453f);
+    return fract(sin(dot(p, vec3(127.1f, 311.7f, 191.999f))) * 43758.5453f + u_Time * 26314.5235317f);
 }
 
 float perlin3D( vec3 p ) {
@@ -87,29 +86,22 @@ float worley3D( vec3 p, out vec3 targetPoint ) {
     return minDist;
 }
 
-// float bias (float b, float t) {
-//   return pow(t, log(b) / log(0.5f));
-// }
+
 
 float getDensity(vec3 p) {
     // if (length(p.xyz) > 2.f) {
     vec3 pos = p - u_PosOrigin.xyz;
-    vec2 center = 1.5f * vec2(cos(pos.y - u_Time * u_TimeScale * 0.05f), sin(pos.y - u_Time * u_TimeScale * 0.05f));
-    float ySmooth = smoothstep(-38.f,-22.f,pos.y);
-    center = ySmooth * center;
-    float lp = length(pos.xz - center);
-    float radius = u_Radius + (ySmooth - 1.f);
-    if (lp > radius) {
+    float lp = length(pos.xz);
+    if (lp - pos.y / 40.f > u_Radius) {
         return 0.f;
     }
-    float perlinVal = perlin3D(pos + vec3(0.f,u_Time * u_TimeScale * -0.05f, 0.f));
-    // if (perlinVal < 0.2 / lp) {
-    //     return 0.f;
-    // }
+    if (perlin3D(pos + vec3(0.f,u_Time * -0.05f, 0.f)) < 0.2 / lp) {
+        return 0.f;
+    }
     // if (perlin3D(pos + vec3(0.f,u_Time * -0.05f, 0.f)) < 0.2 / lp) {
     //     return 0.f;
     // }
-    return smoothstep(0.1,0.3,perlinVal) * 0.1;
+    return 0.1;
     // return 0.015625f;
 }
 
@@ -119,10 +111,6 @@ float accumulateDensity(vec3 pos, vec3 direction) {
     for (int i = 0; i < u_SmokeMaxSteps; ++i) {
         acc += getDensity(pos);
         pos += direction * (0.5f + random3Dto1DTime(pos));
-        if (acc >= 0.5 ||
-            abs(pos.x) > 4.f || abs(pos.z) > 4.f || pos.y < 0.f || pos.y > 80.f) {
-            return acc;
-        }
     }
     return acc;
 }
@@ -160,7 +148,6 @@ void main()
 
         // diffuseColor.a = dot(, vec3(-1.f,0.f,0.f));
         // Compute final shaded color
-        // out_Col = vec4(1.f);
         out_Col = vec4(diffuseColor.rgb, diffuseColor.a);
         // out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
 }

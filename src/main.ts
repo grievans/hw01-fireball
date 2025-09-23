@@ -26,8 +26,8 @@ let controls = {
   "XZ Stretch Amplitude" : 1.0,
   "Outline Scale" : 10.0,
   "Outline Steps" : 15.0,
-  "Smoke Step Size" : 0.03125,
-  "Smoke Max Steps" : 64,
+  "Smoke Step Size" : 0.4,
+  "Smoke Max Steps" : 100,
   "Reset to Defaults" : function() {}, // Not sure best way to set this up, this feels awkward
   // Color: "#ff0000"
 };
@@ -90,7 +90,7 @@ function main() {
   gui.add(controls, "Outline Scale", 0, 50.0).step(1);
   gui.add(controls, "Outline Steps", 0, 100.0).step(1);
   gui.add(controls, "Smoke Max Steps", 0, 1024.0).step(1);
-  gui.add(controls, "Smoke Step Size", 0, 10.0).step(0.03125);
+  gui.add(controls, "Smoke Step Size", 0, 10.0).step(1/16);
   
   function resetToDefaults() {
     controls["tesselations"] = 6;
@@ -99,7 +99,8 @@ function main() {
     controls["Worley Noise Scale"] = 1.0;
     controls["XZ Stretch Amplitude"] = 1.0;
     controls["Outline Scale"] = 10.0;
-    controls["Outline Steps"] = 15.0;
+    controls["Smoke Step Size"]= 0.4;
+    controls["Smoke Max Steps"] = 100;
     gui.updateDisplay();
   }
   controls["Reset to Defaults"] = resetToDefaults;
@@ -165,6 +166,10 @@ function main() {
     new Shader(gl.VERTEX_SHADER, require('./shaders/fireroom-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireroom-frag.glsl')),
   ]);
+  // const smokeShader = new ShaderProgram([
+  //   new Shader(gl.VERTEX_SHADER, require('./shaders/passthrough-vert.glsl')),
+  //   new Shader(gl.FRAGMENT_SHADER, require('./shaders/smoke-post-frag.glsl')),
+  // ]);
   const smokeShader = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/smoke-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/smoke-frag.glsl')),
@@ -348,9 +353,17 @@ function main() {
     smokeShader.setSmokeMaxSteps(controls["Smoke Max Steps"]);
     smokeShader.setSmokeStepSize(controls["Smoke Step Size"]);
 
+    gl.enable(gl.DEPTH_TEST);
+
     renderer.render(camera, smokeShader, [tallCube], ++time, 
       controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
       controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
+    
+    gl.disable(gl.DEPTH_TEST);
+
+    // renderer.render(camera, smokeShader, [square], ++time, 
+    //   controls['Main Time Scale'], controls["Color Gradient Time Scale"], 
+    //   controls["Worley Noise Scale"], controls["XZ Stretch Amplitude"]);
     
 
     // renderer.render(camera, smokeShader, drawArr, ++time, 
