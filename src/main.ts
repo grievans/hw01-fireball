@@ -99,6 +99,7 @@ function main() {
     controls["Worley Noise Scale"] = 1.0;
     controls["XZ Stretch Amplitude"] = 1.0;
     controls["Outline Scale"] = 10.0;
+    controls["Outline Steps"] = 15.0; // ah dang forgot that
     controls["Smoke Step Size"]= 0.4;
     controls["Smoke Max Steps"] = 100;
 
