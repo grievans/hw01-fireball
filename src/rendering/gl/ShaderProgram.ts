@@ -188,10 +188,10 @@ class ShaderProgram {
       gl.uniform1f(this.unifXZAmplitude, t);
     }
   }
-  setMouseCoords(x: number, y: number) {
+  setMouseCoords(x: number, y: number, z: number) {
     this.use();
     if(this.unifMouseCoords !== -1) {
-      gl.uniform2f(this.unifMouseCoords, x, y);
+      gl.uniform3f(this.unifMouseCoords, x, y, z);
     }
   }
   setOutlineScale(t: number) {

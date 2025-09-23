@@ -23,7 +23,7 @@ uniform float u_TimeScale;
 uniform float u_WorleyScale;
 uniform float u_XZAmplitude;
 
-uniform vec2 u_MouseCoords;
+uniform vec3 u_MouseCoords;
 uniform vec2 u_Dimensions;
 
 
@@ -109,6 +109,13 @@ float bias (float b, float t) {
   return pow(t, log(b) / log(0.5f));
 }
 
+float gain ( float g, float t) {
+    if ( t < 0.5f ) {
+        return bias(1.f - g, 2.f * t) * 0.5f;
+    } else {
+        return 1.f - bias(1.f - g, 2.f - 2.f * t) * 0.5f;
+    }
+}
 
 
 void main()
@@ -127,7 +134,14 @@ void main()
     vec4 modelPosition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
 
     // TODO not sure how I want mouse interaction to behave
-    modelPosition.xy -= (u_MouseCoords - 0.5f) / max(0.4f, distance(modelPosition.xy, u_MouseCoords));
+    // modelPosition.xyz -= (u_MouseCoords - 0.5f) / max(0.4f, distance(modelPosition.xyz, u_MouseCoords));
+
+    vec4 center = u_Model * vec4(0.f,0.f,0.f,1.f);
+
+    vec3 mouseDir = u_MouseCoords - center.xyz;    
+    vec3 mouseDirNorm = normalize(mouseDir);
+
+    // modelPosition.xy -= (u_MouseCoords - 0.5f) / max(0.4f, distance(modelPosition.xy, u_MouseCoords));
     
 
     float normOffset = 0.f;
@@ -151,9 +165,16 @@ void main()
 
     // normOffset *= random3D(vs_Pos.xyz * 0.0000001f).x > 0.5f ? 1.f : 0.f;
 
-
     modelPosition += normal * vec4(vec3(normOffset),0.f);
     modelPosition.y += normOffset;
+
+
+    float normDot = dot(mouseDirNorm, normal.xyz);
+    // if (normDot < 0.f) {
+    //     normDot = 0.f;
+    // }
+    modelPosition += normal * gain(0.95f,max(normDot,0.f)) * length(mouseDir);
+    
 
     // float xzScale = (sin(modelPosition.y * 3.f - u_Time * 0.07f) + 1.f) * 0.2f + 0.8f;
 

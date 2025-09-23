@@ -101,6 +101,14 @@ function main() {
     controls["Outline Scale"] = 10.0;
     controls["Smoke Step Size"]= 0.4;
     controls["Smoke Max Steps"] = 100;
+
+    mouseX = 0;
+    mouseY = 0;
+    mouseZ = 0;
+    
+    fireballShader.setMouseCoords(mouseX, mouseY, mouseZ);
+
+
     gui.updateDisplay();
   }
   controls["Reset to Defaults"] = resetToDefaults;
@@ -154,10 +162,10 @@ function main() {
     new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-frag.glsl')),
   ]);
-  const fireballShaderNoFrag = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-noColor-frag.glsl')),
-  ]);
+  // const fireballShaderNoFrag = new ShaderProgram([
+  //   new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
+  //   new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireball-noColor-frag.glsl')),
+  // ]);
   // const fireballShader2 = new ShaderProgram([
   //   new Shader(gl.VERTEX_SHADER, require('./shaders/fireball-vert.glsl')),
   //   new Shader(gl.FRAGMENT_SHADER, require('./shaders/smoke-frag.glsl')),
@@ -183,20 +191,23 @@ function main() {
     // Use this if you wish
   }
 
-  let mouseX = 0.5;
-  let mouseY = 0.5;
+  let mouseX = 0;
+  let mouseY = 0;
+  let mouseZ = 0;
 
-  fireballShader.setMouseCoords(mouseX, mouseY);
-  fireballShaderNoFrag.setMouseCoords(mouseX, mouseY);
+  fireballShader.setMouseCoords(mouseX, mouseY, mouseZ);
+  // fireballShaderNoFrag.setMouseCoords(mouseX, mouseY);
   // fireballShader2.setMouseCoords(mouseX, mouseY);
 
   let trailSpheres : Icosphere[] = [];
 
   function updateMousePos(event: MouseEvent) {
-    let newMouseX = event.pageX / window.innerWidth;
-    let newMouseY = event.pageY / window.innerHeight;
-    mouseX = newMouseX;
-    mouseY = newMouseY;
+    // let newMouseX = event.pageX / window.innerWidth - 0.5;
+    // let newMouseY = event.pageY / window.innerHeight - 0.5;
+    let newMouseX = event.movementX;
+    let newMouseY = event.movementY;
+    // mouseX = newMouseX;
+    // mouseY = newMouseY;
     if (event.altKey) {
     // if (event.altKey && (event.buttons & 1) === 1) {
       // let addedSphere = new Icosphere(vec3.fromValues(3 - newMouseX * 6, 3 - newMouseY * 6, 0), 0.5, 2);
@@ -208,10 +219,34 @@ function main() {
       // mouseX += event.movementX;
       // mouseY += event.movementY;
       // console.log(mouseX, mouseY);
-      fireballShader.setMouseCoords(mouseX, mouseY);
-      fireballShaderNoFrag.setMouseCoords(mouseX, mouseY);
+      // fireballShader.setMouseCoords(mouseX, mouseY);
+      // fireballShaderNoFrag.setMouseCoords(mouseX, mouseY);
       // fireballShader2.setMouseCoords(mouseX, mouseY);
 
+      // let right = vec3.fromValues(camera.viewMatrix[0], camera.viewMatrix[1], camera.viewMatrix[2]);
+      // TODO figure out index
+      // vec3.mul(right, right, newMouseX);
+
+      let dx = camera.viewMatrix[0] * newMouseX - camera.viewMatrix[1] * newMouseY;
+      let dy = camera.viewMatrix[4] * newMouseX - camera.viewMatrix[5] * newMouseY;
+      let dz = camera.viewMatrix[8] * newMouseX - camera.viewMatrix[9] * newMouseY;
+
+      mouseX += dx * 0.02;
+      mouseY += dy * 0.02;
+      mouseZ += dz * 0.02;
+
+      fireballShader.setMouseCoords(mouseX, mouseY, mouseZ);
+
+      // console.log(`${mouseX} ${mouseY} ${mouseZ}`)
+      // console.log(`${dx} ${dy} ${dz}`);
+      // console.log(`${camera} `);
+      // for (let i = 0; i < 16; ++i) {
+      //   console.log(camera.up[i]);
+      // }
+
+      // let forward = vec3.create();
+      // vec3.sub(forward camera.target, camera.position);
+      // camera.viewMatrix[]
       
     }
   }
